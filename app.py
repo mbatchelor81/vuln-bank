@@ -234,7 +234,7 @@ def register():
             result = execute_query(query, values, fetch=True)
             
             if not result or not result[0]:
-                raise Exception("Failed to create user")
+                raise RuntimeError("Failed to create user")
                 
             user = result[0]
             
