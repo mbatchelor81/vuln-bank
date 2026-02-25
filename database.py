@@ -48,7 +48,7 @@ def init_connection_pool(min_connections=1, max_connections=10, max_retries=5, r
 def get_connection():
     if connection_pool:
         return connection_pool.getconn()
-    raise Exception("Connection pool not initialized")
+    raise RuntimeError("Connection pool not initialized")
 
 def return_connection(connection):
     if connection_pool:
