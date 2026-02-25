@@ -755,11 +755,14 @@ def metadata_iam_role():
         'Code': 'Success',
         'LastUpdated': datetime.now().isoformat(),
         'Type': 'AWS-HMAC',
-        'AccessKeyId': 'ASIADEMO1234567890',
-        'SecretAccessKey': 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYDEMODEMO',
-        'Token': 'IQoJb3JpZ2luX2VjEJ//////////wEaCXVzLXdlc3QtMiJIMEYCIQCdemo',
+        'AccessKeyId': os.environ.get('METADATA_ACCESS_KEY_ID', ''),
+        'SecretAccessKey': os.environ.get('METADATA_SECRET_ACCESS_KEY', ''),
+        'Token': os.environ.get('METADATA_SESSION_TOKEN', ''),
         'Expiration': (datetime.now() + timedelta(hours=1)).isoformat(),
-        'RoleArn': 'arn:aws:iam::123456789012:role/vulnbank-role'
+        'RoleArn': os.environ.get(
+            'METADATA_ROLE_ARN',
+            'arn:aws:iam::123456789012:role/vulnbank-role'
+        )
     }
     return jsonify(creds)
 
