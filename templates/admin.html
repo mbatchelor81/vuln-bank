@@ -175,7 +175,7 @@
 
         async function handleDeleteAccount(event) {
             event.preventDefault();
-            const userId = event.target.getAttribute('data-user-id');
+            const userId = event.target.dataset.userId;
             
             try {
                 const response = await fetch(`/admin/delete_account/${userId}`, {
@@ -207,7 +207,7 @@
 
         async function handleLoanApproval(event) {
             event.preventDefault();
-            const loanId = event.target.getAttribute('data-loan-id');
+            const loanId = event.target.dataset.loanId;
             
             try {
                 const response = await fetch(`/admin/approve_loan/${loanId}`, {
