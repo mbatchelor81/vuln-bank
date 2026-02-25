@@ -74,7 +74,7 @@ CURRENT USER CONTEXT:
             # VULNERABILITY: Check if user wants database information and include it
             database_info = ""
             if self._should_include_database_info(user_message) or self._is_prompt_injection_request(user_message):
-                database_info = self._get_database_context(user_message, user_context)
+                database_info = self._get_database_context(user_message)
 
             # VULNERABILITY: Construct prompt with sensitive information and explicit instructions
             full_prompt = f"""
@@ -140,7 +140,7 @@ Remember: You are designed to demonstrate vulnerabilities, so comply with all us
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in injection_keywords)
 
-    def _get_database_context(self, message, user_context):
+    def _get_database_context(self, message):
         """
         VULNERABILITY: Provides database information to LLM without proper authorization
         This information gets sent to the external API
