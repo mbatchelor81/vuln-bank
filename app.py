@@ -187,7 +187,7 @@ def generate_cvv():
     # Vulnerability: Predictable CVV generation
     return ''.join(random.choices(string.digits, k=3))
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
@@ -334,7 +334,7 @@ def login():
         
     return render_template('login.html')
 
-@app.route('/debug/users')
+@app.route('/debug/users', methods=['GET'])
 def debug_users():
     users = execute_query("SELECT id, username, password, account_number, is_admin FROM users")
     return jsonify({'users': [
@@ -347,7 +347,7 @@ def debug_users():
         } for u in users
     ]})
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET'])
 @token_required
 def dashboard(current_user):
     # Vulnerability: No input validation on user_id
@@ -380,7 +380,7 @@ def dashboard(current_user):
                          is_admin=current_user.get('is_admin', False))
 
 # Check balance endpoint
-@app.route('/check_balance/<account_number>')
+@app.route('/check_balance/<account_number>', methods=['GET'])
 def check_balance(account_number):
     # Broken Object Level Authorization (BOLA) vulnerability
     # No authentication check, anyone can check any account balance
@@ -476,7 +476,7 @@ def transfer(current_user):
         }), 500
 
 # Get transaction history endpoint
-@app.route('/transactions/<account_number>')
+@app.route('/transactions/<account_number>', methods=['GET'])
 def get_transaction_history(account_number):
     # Vulnerability: No authentication required (BOLA)
     # Vulnerability: SQL Injection possible
@@ -791,7 +791,7 @@ def request_loan(current_user):
         }), 500
 
 # Hidden admin endpoint (security through obscurity)
-@app.route('/sup3r_s3cr3t_admin')
+@app.route('/sup3r_s3cr3t_admin', methods=['GET'])
 @token_required
 def admin_panel(current_user):
     if not current_user['is_admin']:
