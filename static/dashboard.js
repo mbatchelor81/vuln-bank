@@ -1069,7 +1069,7 @@ async function sendToAI(message) {
         const selectedMode = document.querySelector('input[name="chatMode"]:checked').value;
         let errorMsg = 'I\'m currently unable to connect. Please check your internet connection and try again.';
         
-        if (selectedMode === 'authenticated' && error.message && error.message.includes('token')) {
+        if (selectedMode === 'authenticated' && error.message?.includes('token')) {
             errorMsg = 'Authentication failed. Please try logging in again or switch to Anonymous mode.';
         }
         
