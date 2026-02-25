@@ -9,8 +9,8 @@ from functools import wraps
 # Weak secret key (CWE-326)
 JWT_SECRET = "secret123"
 
-# Vulnerable algorithm selection - allows 'none' algorithm
-ALGORITHMS = ['HS256', 'none']
+# Only allow secure algorithms
+ALGORITHMS = ['HS256']
 
 def generate_token(user_id, username, is_admin=False):
     """
@@ -31,26 +31,15 @@ def generate_token(user_id, username, is_admin=False):
 
 def verify_token(token):
     """
-    Verify JWT token with multiple vulnerabilities
-    - Accepts 'none' algorithm (CWE-347)
-    - No signature verification in some cases
-    - No expiration check
+    Verify JWT token with signature verification.
+    Returns the decoded payload if valid, None otherwise.
     """
     try:
-        # Vulnerability: Accepts any algorithm, including 'none'
         payload = jwt.decode(token, JWT_SECRET, algorithms=ALGORITHMS)
         return payload
-    except jwt.exceptions.InvalidSignatureError:
-        # Vulnerability: Still accepts tokens in some error cases
-        try:
-            # Second try without verification
-            payload = jwt.decode(token, options={'verify_signature': False})
-            return payload
-        except:
-            return None
-    except Exception as e:
-        # Vulnerability: Detailed error exposure in logs
-        print(f"Token verification error: {str(e)}")
+    except jwt.exceptions.ExpiredSignatureError:
+        return None
+    except jwt.exceptions.InvalidTokenError:
         return None
 
 
