@@ -73,13 +73,13 @@ body {
 }
 
 .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #1a3759;
     color: white;
     padding-left: 1.5rem;
 }
 
 .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: #264263;
     color: white;
 }
 
@@ -471,7 +471,7 @@ body {
 }
 
 .card-actions button {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: #3c3c4d;
     color: white;
     border: none;
     border-radius: 5px;
@@ -707,7 +707,7 @@ body {
     position: absolute;
     top: -5px;
     right: -5px;
-    background: #ff4757;
+    background: #d63031;
     color: white;
     border-radius: 50%;
     width: 20px;
