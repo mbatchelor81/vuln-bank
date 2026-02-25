@@ -809,7 +809,7 @@
                 </div>
             </div>
             <div class="hero-image">
-                <img src="{{ url_for('static', filename='uploads/banking-app.png') }}" onerror="this.src='https://via.placeholder.com/500x300?text=Banking+App'" alt="Banking App">
+                <img id="heroImage" src="{{ url_for('static', filename='uploads/banking-app.png') }}" alt="Banking App">
             </div>
         </div>
         
@@ -994,6 +994,14 @@
 
         // Initialize chat widget
         document.addEventListener('DOMContentLoaded', function() {
+            // Fallback for hero image load failure
+            var heroImg = document.getElementById('heroImage');
+            if (heroImg) {
+                heroImg.addEventListener('error', function() {
+                    heroImg.src = 'https://via.placeholder.com/500x300?text=Banking+App';
+                });
+            }
+
             // Set initial time for welcome message
             document.getElementById('landingInitialTime').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
