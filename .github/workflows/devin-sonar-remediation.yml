@@ -1,0 +1,21 @@
+name: SonarQube Remediation via Devin
+on:
+  workflow_dispatch:
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: pip install aiohttp
+
+      - name: Query SonarQube and delegate to Devin
+        env:
+          DEVIN_SERVICE_USER_TOKEN: ${{ secrets.DEVIN_SERVICE_USER_TOKEN }}
+          DEVIN_ORG_ID: "org-928b443b74fd45aaacfa7bab73bc2c2d"
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonarcloud.io"
+          SONAR_PROJECT_KEY: "mbatchelor81_vuln-bank"
+        run: python3 .github/scripts/delegate_sonar_issues.py
