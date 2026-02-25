@@ -112,7 +112,7 @@
                 <img id="profile-picture"
                      class="profile-picture"
                      src="{{ url_for('static', filename='uploads/' + user.profile_picture) if user.profile_picture else url_for('static', filename='uploads/user.png') }}"
-                     alt="Profile Picture">
+                     alt="Profile">
                 <div class="profile-picture-edit" onclick="document.getElementById('profile_picture').click()">
                         ✏️
                 </div>
