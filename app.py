@@ -1836,6 +1836,75 @@ def get_payment_history(current_user):
             'message': str(e)
         }), 500
 
+@app.route('/api/spending-analytics', methods=['GET'])
+@token_required
+def spending_analytics(current_user):
+    try:
+        # 1. Get user's account number
+        user_data = execute_query(
+            "SELECT account_number FROM users WHERE id = %s",
+            (current_user['user_id'],)
+        )[0]
+        account_number = user_data[0]
+
+        # 2. Monthly sent totals (last 6 months)
+        sent_rows = execute_query("""
+            SELECT TO_CHAR(timestamp, 'YYYY-MM') as month, SUM(amount)
+            FROM transactions
+            WHERE from_account = %s
+              AND timestamp >= NOW() - INTERVAL '6 months'
+            GROUP BY month
+            ORDER BY month ASC
+        """, (account_number,))
+
+        # 3. Monthly received totals (last 6 months)
+        received_rows = execute_query("""
+            SELECT TO_CHAR(timestamp, 'YYYY-MM') as month, SUM(amount)
+            FROM transactions
+            WHERE to_account = %s
+              AND timestamp >= NOW() - INTERVAL '6 months'
+            GROUP BY month
+            ORDER BY month ASC
+        """, (account_number,))
+
+        # 4. Monthly bill payment totals (last 6 months)
+        bills_rows = execute_query("""
+            SELECT TO_CHAR(created_at, 'YYYY-MM') as month, SUM(amount)
+            FROM bill_payments
+            WHERE user_id = %s
+              AND created_at >= NOW() - INTERVAL '6 months'
+            GROUP BY month
+            ORDER BY month ASC
+        """, (current_user['user_id'],))
+
+        # 5. Merge into a unified monthly summary dict
+        summary = {}
+        for row in sent_rows:
+            month = row[0]
+            summary.setdefault(month, {'month': month, 'total_sent': 0.0, 'total_received': 0.0, 'total_bills': 0.0})
+            summary[month]['total_sent'] = float(row[1])
+        for row in received_rows:
+            month = row[0]
+            summary.setdefault(month, {'month': month, 'total_sent': 0.0, 'total_received': 0.0, 'total_bills': 0.0})
+            summary[month]['total_received'] = float(row[1])
+        for row in bills_rows:
+            month = row[0]
+            summary.setdefault(month, {'month': month, 'total_sent': 0.0, 'total_received': 0.0, 'total_bills': 0.0})
+            summary[month]['total_bills'] = float(row[1])
+
+        monthly_list = sorted(summary.values(), key=lambda x: x['month'])
+
+        return jsonify({
+            'status': 'success',
+            'monthly_summary': monthly_list
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 # AI CUSTOMER SUPPORT AGENT ROUTES (INTENTIONALLY VULNERABLE)
 @app.route('/api/ai/chat', methods=['POST'])
 @ai_rate_limit

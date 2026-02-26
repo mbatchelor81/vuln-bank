@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load initial data
     loadBillCategories();
     loadPaymentHistory();
+    fetchSpendingAnalytics();
 
     // Set active nav link based on URL hash
     const hash = window.location.hash || '#profile';
@@ -804,6 +805,57 @@ async function loadPaymentHistory() {
 }
 
 // Vulnerability: No server-side token invalidation
+async function fetchSpendingAnalytics() {
+    try {
+        const response = await fetch('/api/spending-analytics', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        });
+
+        const data = await response.json();
+        const container = document.getElementById('spending-analytics-content');
+
+        if (data.status === 'success') {
+            if (data.monthly_summary.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No transaction data available</p>';
+                return;
+            }
+
+            const rows = data.monthly_summary.map(m => `
+                <tr>
+                    <td>${m.month}</td>
+                    <td style="color: red;">-$${m.total_sent.toFixed(2)}</td>
+                    <td style="color: green;">+$${m.total_received.toFixed(2)}</td>
+                    <td style="color: orange;">-$${m.total_bills.toFixed(2)}</td>
+                    <td>$${(m.total_received - m.total_sent - m.total_bills).toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Total Sent</th>
+                            <th>Total Received</th>
+                            <th>Bill Payments</th>
+                            <th>Net</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        } else {
+            container.innerHTML = '<p style="text-align: center; padding: 2rem;">Error loading analytics</p>';
+        }
+    } catch (error) {
+        document.getElementById('spending-analytics-content').innerHTML = '<p style="text-align: center; padding: 2rem;">Error loading analytics</p>';
+    }
+}
+
 function logout() {
     localStorage.removeItem('jwt_token');
     window.location.href = '/login';
