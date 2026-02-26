@@ -841,7 +841,6 @@ async function fetchSpendingAnalytics() {
 
             data.monthly_summary.forEach(item => {
                 const netClass = item.net_change >= 0 ? 'positive' : 'negative';
-                const netSign = item.net_change >= 0 ? '+' : '';
                 const monthLabel = formatMonthLabel(item.month);
 
                 tableHtml += `
