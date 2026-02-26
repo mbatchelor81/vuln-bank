@@ -849,7 +849,7 @@ async function fetchSpendingAnalytics() {
                         <td>${monthLabel}</td>
                         <td class="amount-spent">-$${item.total_spent.toFixed(2)}</td>
                         <td class="amount-received">+$${item.total_received.toFixed(2)}</td>
-                        <td class="amount-net ${netClass}">${netSign}$${item.net_change.toFixed(2)}</td>
+                        <td class="amount-net ${netClass}">${item.net_change >= 0 ? '+$' + item.net_change.toFixed(2) : '-$' + Math.abs(item.net_change).toFixed(2)}</td>
                     </tr>
                 `;
             });
