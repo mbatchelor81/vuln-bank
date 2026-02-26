@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadBillCategories();
     loadPaymentHistory();
 
+    // Load spending analytics
+    fetchSpendingAnalytics();
+
     // Set active nav link based on URL hash
     const hash = window.location.hash || '#profile';
     const activeLink = document.querySelector(`.nav-link[href='${hash}']`);
@@ -804,6 +807,73 @@ async function loadPaymentHistory() {
 }
 
 // Vulnerability: No server-side token invalidation
+// Spending Analytics
+async function fetchSpendingAnalytics() {
+    try {
+        const response = await fetch('/api/spending-analytics', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        });
+
+        const data = await response.json();
+        const container = document.getElementById('analytics-content');
+
+        if (data.status === 'success') {
+            if (data.monthly_summary.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No transaction data available for the past 6 months.</p>';
+                return;
+            }
+
+            let tableHtml = `
+                <div class="analytics-table-wrapper">
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Total Spent</th>
+                                <th>Total Received</th>
+                                <th>Net Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.monthly_summary.forEach(item => {
+                const netClass = item.net_change >= 0 ? 'positive' : 'negative';
+                const monthLabel = formatMonthLabel(item.month);
+
+                tableHtml += `
+                    <tr>
+                        <td>${monthLabel}</td>
+                        <td class="amount-spent">-$${item.total_spent.toFixed(2)}</td>
+                        <td class="amount-received">+$${item.total_received.toFixed(2)}</td>
+                        <td class="amount-net ${netClass}">${item.net_change >= 0 ? '+$' + item.net_change.toFixed(2) : '-$' + Math.abs(item.net_change).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = tableHtml;
+        } else {
+            container.innerHTML = '<p style="text-align: center; padding: 2rem;">Error loading spending analytics.</p>';
+        }
+    } catch (error) {
+        document.getElementById('analytics-content').innerHTML = '<p style="text-align: center; padding: 2rem;">Error loading spending analytics.</p>';
+    }
+}
+
+function formatMonthLabel(monthStr) {
+    const [year, month] = monthStr.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+}
+
 function logout() {
     localStorage.removeItem('jwt_token');
     window.location.href = '/login';

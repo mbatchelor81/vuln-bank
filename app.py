@@ -2058,6 +2058,68 @@ def ai_rate_limit_status():
             'message': str(e)
         }), 500
 
+@app.route('/api/spending-analytics', methods=['GET'])
+@token_required
+def spending_analytics(current_user):
+    """Get monthly spending analytics for the past 6 months"""
+    try:
+        # Get user's account number
+        user_data = execute_query(
+            "SELECT account_number FROM users WHERE id = %s",
+            (current_user['user_id'],)
+        )
+        
+        if not user_data or not user_data[0]:
+            return jsonify({
+                'status': 'error',
+                'message': 'User account not found'
+            }), 404
+        
+        account_number = user_data[0][0]
+        
+        # Query monthly totals for the past 6 months
+        # Total spent = sum of amounts where user is the sender
+        # Total received = sum of amounts where user is the receiver
+        query = """
+            SELECT
+                TO_CHAR(DATE_TRUNC('month', timestamp), 'YYYY-MM') AS month,
+                COALESCE(SUM(CASE WHEN from_account = %s THEN amount ELSE 0 END), 0) AS total_spent,
+                COALESCE(SUM(CASE WHEN to_account = %s THEN amount ELSE 0 END), 0) AS total_received
+            FROM transactions
+            WHERE (from_account = %s OR to_account = %s)
+              AND timestamp >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
+            GROUP BY DATE_TRUNC('month', timestamp)
+            ORDER BY DATE_TRUNC('month', timestamp) DESC
+        """
+        
+        results = execute_query(
+            query,
+            (account_number, account_number, account_number, account_number)
+        )
+        
+        monthly_data = []
+        for row in results:
+            total_spent = float(row[1])
+            total_received = float(row[2])
+            monthly_data.append({
+                'month': row[0],
+                'total_spent': total_spent,
+                'total_received': total_received,
+                'net_change': total_received - total_spent
+            })
+        
+        return jsonify({
+            'status': 'success',
+            'account_number': account_number,
+            'monthly_summary': monthly_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 if __name__ == '__main__':
     init_db()
     init_auth_routes(app)
